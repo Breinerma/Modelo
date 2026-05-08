@@ -1,0 +1,133 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Olist Risk Engine — Información del Modelo</title>
+  <link rel="stylesheet" href="{% static 'olist_risk/css/styles.css' %}" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="brand">
+      <span class="brand-icon">🛡️</span>
+      <div>
+        <h1>Olist Risk Engine</h1>
+        <p>Predictor de Riesgo Transaccional · LightGBM CRISP-ML</p>
+      </div>
+    </div>
+    <nav class="header-nav">
+      <a href="{% url 'simulator' %}" class="nav-link">Simulador</a>
+      <a href="{% url 'model_info' %}" class="nav-link active">Modelo</a>
+      <a href="/api/" class="nav-link" target="_blank">API</a>
+    </nav>
+  </div>
+</header>
+
+<main style="max-width:900px; margin:2rem auto; padding:0 1.5rem;">
+
+  <h2 style="color:var(--accent); margin-bottom:1.5rem;">📋 Información del Modelo</h2>
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
+
+    <!-- Métricas -->
+    <div class="info-card">
+      <h3>Métricas de Evaluación</h3>
+      <table class="info-table">
+        {% for k, v in config.metrics.items %}
+        <tr>
+          <td><strong>{{ k }}</strong></td>
+          <td>{{ v }}</td>
+          <td>
+            {% if k == "Recall" and v >= 0.40 %}✅
+            {% elif k == "AUC_ROC" and v > 0.60 %}✅
+            {% else %}—{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+
+    <!-- Criterios de negocio -->
+    <div class="info-card">
+      <h3>Criterios de Negocio</h3>
+      <table class="info-table">
+        {% for k, v in config.business_criteria.items %}
+        <tr>
+          <td>{{ k }}</td>
+          <td>{% if v %}✅ Cumple{% else %}❌ No cumple{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </table>
+      <p style="margin-top:1rem; font-size:.85rem; color:#888;">
+        Umbral: <strong>{{ config.threshold }}</strong> &nbsp;|&nbsp;
+        Corte entrenamiento: <strong>{{ config.train_cutoff }}</strong>
+      </p>
+    </div>
+
+    <!-- Features -->
+    <div class="info-card" style="grid-column:1/-1;">
+      <h3>Features del Modelo ({{ features|length }})</h3>
+      <div style="display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.75rem;">
+        {% for f in features %}
+        <span class="feature-tag">{{ f }}</span>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- API endpoints -->
+    <div class="info-card" style="grid-column:1/-1;">
+      <h3>Endpoints de la API</h3>
+      <table class="info-table">
+        <tr><td><code>GET  /api/</code></td><td>Estado del modelo</td></tr>
+        <tr><td><code>GET  /api/health/</code></td><td>Health check</td></tr>
+        <tr><td><code>POST /api/predict/</code></td><td>Predicción de riesgo</td></tr>
+        <tr><td><code>GET  /api/model-info/</code></td><td>Configuración completa</td></tr>
+      </table>
+      <details style="margin-top:1rem;">
+        <summary style="cursor:pointer; color:var(--accent);">Ver ejemplo de request / response</summary>
+        <pre class="code-block">
+POST /api/predict/
+Content-Type: application/json
+
+{
+  "total_items": 1,
+  "total_price": 95,
+  "total_freight": 12,
+  "unique_sellers": 1,
+  "approval_delay_hours": 0.5,
+  "estimated_delivery_days": 7,
+  "purchase_month": 4,
+  "purchase_weekday": 1,
+  "seller_historic_risk_rate": 0.05,
+  "seller_historic_order_count": 120,
+  "category_risk_rate": 0.07,
+  "is_high_risk_category": 0,
+  "payment_installments": 1,
+  "same_state": 1,
+  "customer_is_sp": 1
+}
+
+→ Response:
+{
+  "risk_probability": 0.2134,
+  "risk_label": 0,
+  "risk_label_text": "NO RIESGO",
+  "threshold": 0.45,
+  "top_features": { ... },
+  "model_version": "1.0.0"
+}
+        </pre>
+      </details>
+    </div>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <p>Olist Risk Engine · LightGBM CRISP-ML · v{{ config.version }}</p>
+</footer>
+</body>
+</html>

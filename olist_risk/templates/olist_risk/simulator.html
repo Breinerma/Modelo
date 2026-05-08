@@ -1,0 +1,238 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Olist Risk Engine — Simulador</title>
+  <link rel="stylesheet" href="{% static 'olist_risk/css/styles.css' %}" />
+</head>
+<body>
+
+<!-- ── HEADER ──────────────────────────────────────────────────────────── -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="brand">
+      <span class="brand-icon">🛡️</span>
+      <div>
+        <h1>Olist Risk Engine</h1>
+        <p>Predictor de Riesgo Transaccional · LightGBM CRISP-ML</p>
+      </div>
+    </div>
+    <nav class="header-nav">
+      <a href="{% url 'simulator' %}" class="nav-link active">Simulador</a>
+      <a href="{% url 'model_info' %}" class="nav-link">Modelo</a>
+      <a href="/api/docs/" class="nav-link" target="_blank">API</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ── MÉTRICAS DEL MODELO ─────────────────────────────────────────────── -->
+<section class="metrics-bar">
+  <div class="metric-pill">
+    <span class="metric-label">Recall</span>
+    <span class="metric-value">{{ metrics.Recall|floatformat:4 }}</span>
+  </div>
+  <div class="metric-pill">
+    <span class="metric-label">AUC-ROC</span>
+    <span class="metric-value">{{ metrics.AUC_ROC|floatformat:4 }}</span>
+  </div>
+  <div class="metric-pill">
+    <span class="metric-label">Precisión</span>
+    <span class="metric-value">{{ metrics.Precision|floatformat:4 }}</span>
+  </div>
+  <div class="metric-pill">
+    <span class="metric-label">F1</span>
+    <span class="metric-value">{{ metrics.F1|floatformat:4 }}</span>
+  </div>
+  <div class="metric-pill">
+    <span class="metric-label">Umbral</span>
+    <span class="metric-value">{{ threshold|floatformat:2 }}</span>
+  </div>
+  <div class="metric-pill">
+    <span class="metric-label">Versión</span>
+    <span class="metric-value">{{ version }}</span>
+  </div>
+</section>
+
+<!-- ── LAYOUT PRINCIPAL ────────────────────────────────────────────────── -->
+<main class="main-layout">
+
+  <!-- Formulario -->
+  <section class="form-panel">
+    <h2 class="panel-title">📦 Datos del Pedido</h2>
+
+    <form id="predictForm">
+      {% csrf_token %}
+
+      <div class="form-grid">
+
+        <!-- Columna 1: Pedido -->
+        <fieldset class="fieldset">
+          <legend>Pedido</legend>
+
+          <div class="field">
+            <label for="total_items">Ítems totales</label>
+            <input type="number" id="total_items" name="total_items" value="1" min="1" step="1" />
+          </div>
+          <div class="field">
+            <label for="total_price">Precio total (R$)</label>
+            <input type="number" id="total_price" name="total_price" value="150" min="0" step="0.01" />
+          </div>
+          <div class="field">
+            <label for="total_freight">Flete total (R$)</label>
+            <input type="number" id="total_freight" name="total_freight" value="20" min="0" step="0.01" />
+          </div>
+          <div class="field">
+            <label for="unique_sellers">Vendedores únicos</label>
+            <input type="number" id="unique_sellers" name="unique_sellers" value="1" min="1" step="1" />
+          </div>
+          <div class="field">
+            <label for="payment_installments">Cuotas de pago</label>
+            <input type="number" id="payment_installments" name="payment_installments" value="1" min="1" max="24" step="1" />
+          </div>
+        </fieldset>
+
+        <!-- Columna 2: Tiempo -->
+        <fieldset class="fieldset">
+          <legend>Tiempo</legend>
+
+          <div class="field">
+            <label for="approval_delay_hours">Retraso aprobación (h)</label>
+            <input type="number" id="approval_delay_hours" name="approval_delay_hours" value="1" min="0" step="0.1" />
+          </div>
+          <div class="field">
+            <label for="estimated_delivery_days">Días entrega estimada</label>
+            <input type="number" id="estimated_delivery_days" name="estimated_delivery_days" value="10" min="1" step="1" />
+          </div>
+          <div class="field">
+            <label for="purchase_month">Mes de compra (1-12)</label>
+            <input type="number" id="purchase_month" name="purchase_month" value="6" min="1" max="12" step="1" />
+          </div>
+          <div class="field">
+            <label for="purchase_weekday">Día de semana (0=Lun, 6=Dom)</label>
+            <input type="number" id="purchase_weekday" name="purchase_weekday" value="1" min="0" max="6" step="1" />
+          </div>
+        </fieldset>
+
+        <!-- Columna 3: Vendedor & Categoría -->
+        <fieldset class="fieldset">
+          <legend>Vendedor &amp; Categoría</legend>
+
+          <div class="field">
+            <label for="seller_historic_risk_rate">Tasa histórica riesgo vendedor</label>
+            <input type="number" id="seller_historic_risk_rate" name="seller_historic_risk_rate" value="0.15" min="0" max="1" step="0.01" />
+          </div>
+          <div class="field">
+            <label for="seller_historic_order_count">Pedidos históricos vendedor</label>
+            <input type="number" id="seller_historic_order_count" name="seller_historic_order_count" value="50" min="0" step="1" />
+          </div>
+          <div class="field">
+            <label for="category_risk_rate">Tasa de riesgo de categoría</label>
+            <input type="number" id="category_risk_rate" name="category_risk_rate" value="0.15" min="0" max="1" step="0.01" />
+          </div>
+          <div class="field">
+            <label for="is_high_risk_category">¿Categoría de alto riesgo?</label>
+            <select id="is_high_risk_category" name="is_high_risk_category">
+              <option value="0">No</option>
+              <option value="1">Sí</option>
+            </select>
+          </div>
+        </fieldset>
+
+        <!-- Columna 4: Geografía -->
+        <fieldset class="fieldset">
+          <legend>Geografía</legend>
+
+          <div class="field">
+            <label for="same_state">¿Mismo estado cliente-vendedor?</label>
+            <select id="same_state" name="same_state">
+              <option value="1">Sí</option>
+              <option value="0">No</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="customer_is_sp">¿Cliente es de São Paulo?</label>
+            <select id="customer_is_sp" name="customer_is_sp">
+              <option value="0">No</option>
+              <option value="1">Sí</option>
+            </select>
+          </div>
+        </fieldset>
+
+      </div><!-- /.form-grid -->
+
+      <!-- Botones de acceso rápido -->
+      <div class="quick-btns">
+        <span class="quick-label">Carga rápida:</span>
+        <button type="button" class="btn-quick btn-high" onclick="loadPreset('high')">🔴 Alto riesgo</button>
+        <button type="button" class="btn-quick btn-low"  onclick="loadPreset('low')">🟢 Bajo riesgo</button>
+        <button type="button" class="btn-quick btn-reset" onclick="resetForm()">↺ Limpiar</button>
+      </div>
+
+      <button type="submit" class="btn-predict" id="submitBtn">
+        <span class="btn-icon">🔍</span> Predecir Riesgo
+      </button>
+    </form>
+  </section>
+
+  <!-- Panel de resultado -->
+  <section class="result-panel" id="resultPanel">
+
+    <div class="result-placeholder" id="resultPlaceholder">
+      <div class="placeholder-icon">📊</div>
+      <p>Completa el formulario y haz clic en <strong>Predecir Riesgo</strong></p>
+    </div>
+
+    <div class="result-content" id="resultContent" style="display:none">
+
+      <div class="verdict-card" id="verdictCard">
+        <div class="verdict-icon" id="verdictIcon"></div>
+        <div class="verdict-text" id="verdictText"></div>
+        <div class="verdict-prob" id="verdictProb"></div>
+      </div>
+
+      <!-- Barra de probabilidad -->
+      <div class="prob-bar-wrap">
+        <div class="prob-bar-bg">
+          <div class="prob-bar-fill" id="probBarFill"></div>
+          <div class="prob-bar-threshold" id="probBarThreshold"></div>
+        </div>
+        <div class="prob-bar-labels">
+          <span>0%</span>
+          <span id="thresholdLabel"></span>
+          <span>100%</span>
+        </div>
+      </div>
+
+      <!-- Top features -->
+      <div class="features-section">
+        <h3>🎯 Factores más influyentes</h3>
+        <div id="featuresList" class="features-list"></div>
+      </div>
+
+      <div class="meta-info" id="metaInfo"></div>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading" id="loadingOverlay" style="display:none">
+      <div class="spinner"></div>
+      <p>Analizando riesgo…</p>
+    </div>
+
+    <!-- Error -->
+    <div class="error-box" id="errorBox" style="display:none">
+      <span>⚠️</span> <span id="errorMsg"></span>
+    </div>
+
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <p>Olist Risk Engine · LightGBM CRISP-ML · v{{ version }} · Umbral {{ threshold|floatformat:2 }}</p>
+</footer>
+
+<script src="{% static 'olist_risk/js/simulator.js' %}"></script>
+</body>
+</html>

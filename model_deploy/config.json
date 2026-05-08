@@ -1,0 +1,37 @@
+{
+  "model_name": "LightGBM \u2014 Predictor de Riesgo Transaccional",
+  "version": "1.0.0",
+  "threshold": 0.45000000000000007,
+  "features": [
+    "total_items",
+    "unique_sellers",
+    "seller_historic_risk_rate",
+    "total_freight",
+    "category_risk_rate",
+    "month_cos",
+    "is_high_risk_category",
+    "month_sin",
+    "customer_is_sp",
+    "same_state",
+    "estimated_delivery_log",
+    "total_price",
+    "payment_installments",
+    "seller_historic_order_count",
+    "approval_delay_log",
+    "weekday_sin",
+    "weekday_cos"
+  ],
+  "train_cutoff": "2018-07-01",
+  "metrics": {
+    "Recall": 0.4064,
+    "Precision": 0.1509,
+    "F1": 0.2201,
+    "AUC_ROC": 0.6146,
+    "Accuracy": 0.7234
+  },
+  "business_criteria": {
+    "Recall >= 0.40": true,
+    "AUC > 0.60": true,
+    "FalseNeg rate < 0.60": true
+  }
+}
