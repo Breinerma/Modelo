@@ -1,0 +1,92 @@
+{% extends "marketplace/base.html" %}
+{% block title %}Orden #{{ order.pk }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0">Orden #{{ order.pk }}</h4>
+  <a href="{% url 'marketplace:order_status_update' order.pk %}" class="btn btn-outline-primary btn-sm">Cambiar estado</a>
+</div>
+
+<div class="row g-3">
+  <!-- Info general -->
+  <div class="col-md-4">
+    <div class="card p-3 h-100">
+      <h6 class="fw-bold">Información</h6>
+      <p class="mb-1"><span class="text-muted">Cliente:</span> {{ order.customer.name }}</p>
+      <p class="mb-1"><span class="text-muted">Estado:</span>
+        <span class="badge bg-secondary">{{ order.get_status_display }}</span>
+      </p>
+      <p class="mb-1"><span class="text-muted">Fecha:</span> {{ order.purchase_timestamp|date:"d/m/Y H:i" }}</p>
+      <p class="mb-1"><span class="text-muted">Entrega estimada:</span> {{ order.estimated_delivery|default:"—" }}</p>
+      <p class="mb-0"><span class="text-muted">Mismo depto.:</span> {% if order.same_state %}✅ Sí{% else %}❌ No{% endif %}</p>
+    </div>
+  </div>
+
+  <!-- Riesgo -->
+  <div class="col-md-4">
+    <div class="card p-3 h-100">
+      <h6 class="fw-bold">Predicción de Riesgo</h6>
+      {% if risk %}
+        {% if risk.risk_probability >= 0.65 %}
+          <div class="alert alert-danger py-2 mb-2">⚠️ Riesgo ALTO</div>
+        {% elif risk.risk_probability >= 0.45 %}
+          <div class="alert alert-warning py-2 mb-2">⚠️ Riesgo MEDIO</div>
+        {% else %}
+          <div class="alert alert-success py-2 mb-2">✅ Riesgo BAJO</div>
+        {% endif %}
+        <p class="mb-1"><span class="text-muted">Probabilidad:</span> {{ risk.risk_probability|floatformat:4 }}</p>
+        <p class="mb-1"><span class="text-muted">Umbral:</span> {{ risk.threshold_used }}</p>
+        <p class="mb-0"><span class="text-muted">Versión modelo:</span> {{ risk.model_version }}</p>
+      {% else %}
+        <p class="text-muted">Sin predicción aún.<br>
+        <small>Se genera al aprobar la orden.</small></p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Totales -->
+  <div class="col-md-4">
+    <div class="card p-3 h-100">
+      <h6 class="fw-bold">Resumen</h6>
+      <p class="mb-1"><span class="text-muted">Ítems:</span> {{ order.total_items }}</p>
+      <p class="mb-1"><span class="text-muted">Subtotal:</span> ${{ order.total_price }}</p>
+      <p class="mb-1"><span class="text-muted">Flete total:</span> ${{ order.total_freight }}</p>
+      <p class="mb-0"><span class="text-muted">Vendedores únicos:</span> {{ order.unique_sellers }}</p>
+    </div>
+  </div>
+
+  <!-- Items -->
+  <div class="col-md-8">
+    <div class="card p-3">
+      <h6 class="fw-bold mb-3">Productos</h6>
+      <table class="table table-sm mb-0">
+        <thead class="table-light">
+          <tr><th>Producto</th><th>Vendedor</th><th>Cant.</th><th>Precio</th><th>Flete</th></tr>
+        </thead>
+        <tbody>
+          {% for item in order.items.all %}
+          <tr>
+            <td>{{ item.product.name }}</td>
+            <td>{{ item.product.seller.name }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>${{ item.price }}</td>
+            <td>${{ item.freight_value }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Pagos -->
+  <div class="col-md-4">
+    <div class="card p-3">
+      <h6 class="fw-bold mb-3">Pagos</h6>
+      {% for p in order.payments.all %}
+      <p class="mb-1">{{ p.get_payment_type_display }} — ${{ p.amount }} ({{ p.installments }}x)</p>
+      {% empty %}
+      <p class="text-muted">Sin pagos registrados.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

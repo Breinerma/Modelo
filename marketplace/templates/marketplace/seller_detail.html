@@ -1,0 +1,32 @@
+{% extends "marketplace/base.html" %}
+{% block title %}{{ seller.name }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0">{{ seller.name }}</h4>
+  <a href="{% url 'marketplace:seller_edit' seller.pk %}" class="btn btn-outline-primary btn-sm">Editar</a>
+</div>
+<div class="card p-3 mb-4">
+  <p class="mb-1"><span class="text-muted">Email:</span> {{ seller.email }}</p>
+  <p class="mb-1"><span class="text-muted">Departamento:</span> {{ seller.get_seller_state_display }}</p>
+  <p class="mb-1"><span class="text-muted">Tasa de riesgo histórica:</span> {{ seller.historic_risk_rate|floatformat:4 }}</p>
+  <p class="mb-0"><span class="text-muted">Total órdenes:</span> {{ seller.total_orders_count }}</p>
+</div>
+<h6 class="fw-bold mb-3">Productos ({{ products.count }})</h6>
+<div class="card">
+  <table class="table table-sm mb-0">
+    <thead class="table-light"><tr><th>Nombre</th><th>Categoría</th><th>Precio</th><th>Stock</th></tr></thead>
+    <tbody>
+      {% for p in products %}
+      <tr>
+        <td><a href="{% url 'marketplace:product_detail' p.pk %}">{{ p.name }}</a></td>
+        <td>{{ p.category|default:"—" }}</td>
+        <td>${{ p.price }}</td>
+        <td>{{ p.stock }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4" class="text-muted text-center">Sin productos.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

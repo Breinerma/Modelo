@@ -1,0 +1,19 @@
+{% extends "marketplace/base.html" %}
+{% block title %}{{ product.name }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0">{{ product.name }}</h4>
+  <div>
+    <a href="{% url 'marketplace:product_edit' product.pk %}" class="btn btn-outline-primary btn-sm">Editar</a>
+    <a href="{% url 'marketplace:product_delete' product.pk %}" class="btn btn-outline-danger btn-sm">Borrar</a>
+  </div>
+</div>
+<div class="card p-3">
+  <p class="mb-1"><span class="text-muted">Vendedor:</span> {{ product.seller.name }}</p>
+  <p class="mb-1"><span class="text-muted">Categoría:</span> {{ product.category|default:"—" }}</p>
+  <p class="mb-1"><span class="text-muted">Precio:</span> ${{ product.price }}</p>
+  <p class="mb-1"><span class="text-muted">Flete:</span> ${{ product.freight_value }}</p>
+  <p class="mb-1"><span class="text-muted">Stock:</span> {{ product.stock }}</p>
+  <p class="mb-0"><span class="text-muted">Descripción:</span> {{ product.description|default:"—" }}</p>
+</div>
+{% endblock %}

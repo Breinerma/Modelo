@@ -1,0 +1,85 @@
+{% extends "marketplace/base.html" %}
+{% block title %}Dashboard — Olist Marketplace{% endblock %}
+{% block content %}
+<h4 class="mb-4 fw-bold">Dashboard</h4>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card p-3">
+      <div class="text-muted small">Total Órdenes</div>
+      <div class="fs-2 fw-bold">{{ total_orders }}</div>
+      <a href="{% url 'marketplace:order_list' %}" class="small text-decoration-none">Ver todas →</a>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card p-3">
+      <div class="text-muted small">Órdenes en Riesgo</div>
+      <div class="fs-2 fw-bold text-danger">{{ orders_at_risk }}</div>
+      <a href="{% url 'marketplace:risk_dashboard' %}" class="small text-decoration-none">Ver panel →</a>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card p-3">
+      <div class="text-muted small">Productos</div>
+      <div class="fs-2 fw-bold">{{ total_products }}</div>
+      <a href="{% url 'marketplace:product_list' %}" class="small text-decoration-none">Ver todos →</a>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card p-3">
+      <div class="text-muted small">Clientes</div>
+      <div class="fs-2 fw-bold">{{ total_customers }}</div>
+      <a href="{% url 'marketplace:customer_list' %}" class="small text-decoration-none">Ver todos →</a>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="card p-3">
+      <h6 class="fw-bold mb-3">Órdenes recientes</h6>
+      <table class="table table-sm table-hover mb-0">
+        <thead class="table-light">
+          <tr><th>#</th><th>Cliente</th><th>Estado</th><th>Total</th><th>Fecha</th></tr>
+        </thead>
+        <tbody>
+          {% for o in recent_orders %}
+          <tr>
+            <td><a href="{% url 'marketplace:order_detail' o.pk %}">#{{ o.pk }}</a></td>
+            <td>{{ o.customer.name }}</td>
+            <td><span class="badge bg-secondary">{{ o.get_status_display }}</span></td>
+            <td>${{ o.total_price }}</td>
+            <td class="text-muted small">{{ o.purchase_timestamp|date:"d/m/Y" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="text-center text-muted">Sin órdenes aún.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="card p-3">
+      <h6 class="fw-bold mb-3">⚠️ Últimas predicciones de riesgo</h6>
+      <ul class="list-group list-group-flush">
+        {% for rp in recent_risk %}
+        <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+          <div>
+            <a href="{% url 'marketplace:order_detail' rp.order.pk %}">Orden #{{ rp.order.pk }}</a>
+            <span class="text-muted small d-block">{{ rp.order.customer.name }}</span>
+          </div>
+          <span class="badge
+            {% if rp.risk_probability >= 0.65 %}bg-danger
+            {% elif rp.risk_probability >= 0.45 %}bg-warning text-dark
+            {% else %}bg-success{% endif %}">
+            {{ rp.risk_probability|floatformat:2 }}
+          </span>
+        </li>
+        {% empty %}
+        <li class="list-group-item text-muted px-0">Sin predicciones aún.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

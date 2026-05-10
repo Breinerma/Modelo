@@ -1,0 +1,17 @@
+{% extends "marketplace/base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-5">
+    <div class="card p-4 border-danger">
+      <h5 class="fw-bold text-danger mb-3">{{ title }}</h5>
+      <p>¿Estás seguro de que deseas eliminar <strong>{{ object }}</strong>? Esta acción no se puede deshacer.</p>
+      <form method="post" class="d-flex gap-2">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+        <a href="javascript:history.back()" class="btn btn-outline-secondary">Cancelar</a>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
