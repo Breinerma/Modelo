@@ -1,0 +1,53 @@
+{% extends "marketplace/base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card p-4">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="fw-bold mb-0">{{ title }}</h5>
+        {% if not categories %}
+          <span class="text-warning small"><i class="bi bi-exclamation-triangle me-1"></i>No hay categorías</span>
+        {% endif %}
+      </div>
+
+      {% if not categories %}
+      <div class="alert alert-warning">
+        No tienes categorías creadas todavía. Debes crear al menos una para poder asignarla al producto.
+        <a href="{% url 'marketplace:category_create' %}?next={{ request.path }}" class="alert-link">
+          Crear categoría ahora →
+        </a>
+      </div>
+      {% endif %}
+
+      <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="mb-3">
+          <label class="form-label fw-semibold">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+            <div class="text-danger small mt-1">{{ field.errors|join:", " }}</div>
+          {% endif %}
+          {% if field.name == "category" %}
+            <div class="mt-1">
+              <a href="{% url 'marketplace:category_create' %}?next={{ request.path }}"
+                 class="small text-decoration-none">
+                <i class="bi bi-plus-circle me-1"></i>Crear nueva categoría
+              </a>
+              {% if categories %}
+                <span class="text-muted small ms-2">({{ categories.count }} disponibles)</span>
+              {% endif %}
+            </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+        <div class="d-flex gap-2 mt-3">
+          <button type="submit" class="btn btn-primary">Guardar</button>
+          <a href="{% url 'marketplace:product_list' %}" class="btn btn-outline-secondary">Cancelar</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

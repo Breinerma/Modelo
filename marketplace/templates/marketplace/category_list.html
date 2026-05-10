@@ -1,0 +1,33 @@
+{% extends "marketplace/base.html" %}
+{% block title %}Categorías{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0">Categorías</h4>
+  <a href="{% url 'marketplace:category_create' %}" class="btn btn-primary">
+    <i class="bi bi-plus-lg me-1"></i>Nueva
+  </a>
+</div>
+<div class="card">
+  <table class="table table-hover mb-0">
+    <thead class="table-light">
+      <tr><th>Nombre</th><th>Tasa de riesgo</th><th>Alto riesgo</th><th>Productos</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for c in categories %}
+      <tr>
+        <td>{{ c.name }}</td>
+        <td>{{ c.risk_rate|floatformat:4 }}</td>
+        <td>{% if c.is_high_risk %}<span class="badge bg-danger">⚠️ Sí</span>{% else %}<span class="badge bg-success">No</span>{% endif %}</td>
+        <td>{{ c.total_products }}</td>
+        <td>
+          <a href="{% url 'marketplace:category_edit' c.pk %}" class="btn btn-sm btn-outline-secondary">Editar</a>
+          <a href="{% url 'marketplace:category_delete' c.pk %}" class="btn btn-sm btn-outline-danger">Borrar</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="text-center text-muted py-4">No hay categorías. <a href="{% url 'marketplace:category_create' %}">Crear la primera</a>.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
