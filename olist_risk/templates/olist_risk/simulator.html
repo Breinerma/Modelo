@@ -9,7 +9,6 @@
 </head>
 <body>
 
-<!-- ── HEADER ──────────────────────────────────────────────────────────── -->
 <header class="site-header">
   <div class="header-inner">
     <div class="brand">
@@ -27,60 +26,37 @@
   </div>
 </header>
 
-<!-- ── MÉTRICAS DEL MODELO ─────────────────────────────────────────────── -->
 <section class="metrics-bar">
-  <div class="metric-pill">
-    <span class="metric-label">Recall</span>
-    <span class="metric-value">{{ metrics.Recall|floatformat:4 }}</span>
-  </div>
-  <div class="metric-pill">
-    <span class="metric-label">AUC-ROC</span>
-    <span class="metric-value">{{ metrics.AUC_ROC|floatformat:4 }}</span>
-  </div>
-  <div class="metric-pill">
-    <span class="metric-label">Precisión</span>
-    <span class="metric-value">{{ metrics.Precision|floatformat:4 }}</span>
-  </div>
-  <div class="metric-pill">
-    <span class="metric-label">F1</span>
-    <span class="metric-value">{{ metrics.F1|floatformat:4 }}</span>
-  </div>
-  <div class="metric-pill">
-    <span class="metric-label">Umbral</span>
-    <span class="metric-value">{{ threshold|floatformat:2 }}</span>
-  </div>
-  <div class="metric-pill">
-    <span class="metric-label">Versión</span>
-    <span class="metric-value">{{ version }}</span>
-  </div>
+  <div class="metric-pill"><span class="metric-label">Recall</span><span class="metric-value">{{ metrics.Recall|floatformat:4 }}</span></div>
+  <div class="metric-pill"><span class="metric-label">AUC-ROC</span><span class="metric-value">{{ metrics.AUC_ROC|floatformat:4 }}</span></div>
+  <div class="metric-pill"><span class="metric-label">Precisión</span><span class="metric-value">{{ metrics.Precision|floatformat:4 }}</span></div>
+  <div class="metric-pill"><span class="metric-label">F1</span><span class="metric-value">{{ metrics.F1|floatformat:4 }}</span></div>
+  <div class="metric-pill"><span class="metric-label">Umbral</span><span class="metric-value">{{ threshold|floatformat:2 }}</span></div>
+  <div class="metric-pill"><span class="metric-label">Versión</span><span class="metric-value">{{ version }}</span></div>
 </section>
 
-<!-- ── LAYOUT PRINCIPAL ────────────────────────────────────────────────── -->
 <main class="main-layout">
 
-  <!-- Formulario -->
   <section class="form-panel">
-    <h2 class="panel-title">📦 Datos del Pedido</h2>
+    <h2 class="panel-title"> Datos del Pedido</h2>
 
     <form id="predictForm">
       {% csrf_token %}
-
       <div class="form-grid">
 
         <!-- Columna 1: Pedido -->
         <fieldset class="fieldset">
           <legend>Pedido</legend>
-
           <div class="field">
             <label for="total_items">Ítems totales</label>
             <input type="number" id="total_items" name="total_items" value="1" min="1" step="1" />
           </div>
           <div class="field">
-            <label for="total_price">Precio total (R$)</label>
+            <label for="total_price">Precio total ($)</label>
             <input type="number" id="total_price" name="total_price" value="150" min="0" step="0.01" />
           </div>
           <div class="field">
-            <label for="total_freight">Flete total (R$)</label>
+            <label for="total_freight">Flete total ($)</label>
             <input type="number" id="total_freight" name="total_freight" value="20" min="0" step="0.01" />
           </div>
           <div class="field">
@@ -96,7 +72,6 @@
         <!-- Columna 2: Tiempo -->
         <fieldset class="fieldset">
           <legend>Tiempo</legend>
-
           <div class="field">
             <label for="approval_delay_hours">Retraso aprobación (h)</label>
             <input type="number" id="approval_delay_hours" name="approval_delay_hours" value="1" min="0" step="0.1" />
@@ -105,13 +80,38 @@
             <label for="estimated_delivery_days">Días entrega estimada</label>
             <input type="number" id="estimated_delivery_days" name="estimated_delivery_days" value="10" min="1" step="1" />
           </div>
+
+          <!-- Mes con nombre -->
           <div class="field">
-            <label for="purchase_month">Mes de compra (1-12)</label>
-            <input type="number" id="purchase_month" name="purchase_month" value="6" min="1" max="12" step="1" />
+            <label for="purchase_month">Mes de compra</label>
+            <select id="purchase_month" name="purchase_month">
+              <option value="1">1 — Enero</option>
+              <option value="2">2 — Febrero</option>
+              <option value="3">3 — Marzo</option>
+              <option value="4">4 — Abril</option>
+              <option value="5">5 — Mayo</option>
+              <option value="6" selected>6 — Junio</option>
+              <option value="7">7 — Julio</option>
+              <option value="8">8 — Agosto</option>
+              <option value="9">9 — Septiembre</option>
+              <option value="10">10 — Octubre</option>
+              <option value="11">11 — Noviembre</option>
+              <option value="12">12 — Diciembre</option>
+            </select>
           </div>
+
+          <!-- Día con nombre -->
           <div class="field">
-            <label for="purchase_weekday">Día de semana (0=Lun, 6=Dom)</label>
-            <input type="number" id="purchase_weekday" name="purchase_weekday" value="1" min="0" max="6" step="1" />
+            <label for="purchase_weekday">Día de la semana</label>
+            <select id="purchase_weekday" name="purchase_weekday">
+              <option value="0">0 — Lunes</option>
+              <option value="1" selected>1 — Martes</option>
+              <option value="2">2 — Miércoles</option>
+              <option value="3">3 — Jueves</option>
+              <option value="4">4 — Viernes</option>
+              <option value="5">5 — Sábado</option>
+              <option value="6">6 — Domingo</option>
+            </select>
           </div>
         </fieldset>
 
@@ -119,40 +119,52 @@
         <fieldset class="fieldset">
           <legend>Vendedor &amp; Categoría</legend>
 
-          <div class="field">
-            <label for="seller_historic_risk_rate">Tasa histórica riesgo vendedor</label>
-            <input type="number" id="seller_historic_risk_rate" name="seller_historic_risk_rate" value="0.15" min="0" max="1" step="0.01" />
-          </div>
+          <!--
+            seller_historic_risk_rate: el usuario elige un rango de porcentaje.
+            El campo oculto seller_historic_risk_rate_hidden lleva el valor
+            numérico real (0-1) que se enviará al modelo.
+            seller_historic_order_count: fijo en 25 (valor por defecto neutral),
+            no se muestra al usuario.
+          -->
+          <input type="hidden" id="seller_historic_risk_rate" name="seller_historic_risk_rate" value="0.185" />
+
           <div class="field">
             <label for="seller_historic_order_count">Pedidos históricos vendedor</label>
-            <input type="number" id="seller_historic_order_count" name="seller_historic_order_count" value="50" min="0" step="1" />
+            <input type="number" id="seller_historic_order_count" name="seller_historic_order_count" value="25" min="0" step="1" />
           </div>
+
+          <!--
+            category_risk_rate: el usuario elige nivel, el select actualiza
+            tanto category_risk_rate como is_high_risk_category automáticamente.
+          -->
+          <input type="hidden" id="category_risk_rate" name="category_risk_rate" value="0.15" />
+          <input type="hidden" id="is_high_risk_category" name="is_high_risk_category" value="0" />
+
           <div class="field">
-            <label for="category_risk_rate">Tasa de riesgo de categoría</label>
-            <input type="number" id="category_risk_rate" name="category_risk_rate" value="0.15" min="0" max="1" step="0.01" />
-          </div>
-          <div class="field">
-            <label for="is_high_risk_category">¿Categoría de alto riesgo?</label>
-            <select id="is_high_risk_category" name="is_high_risk_category">
-              <option value="0">No</option>
-              <option value="1">Sí</option>
+            <label for="category_risk_display">Nivel de riesgo de la categoría</label>
+            <select id="category_risk_display">
+              <option value="low">🟢 Bajo riesgo — menos del 30%</option>
+              <option value="moderate" selected>🟡 Riesgo moderado — 30% a 44.9%</option>
+              <option value="detected">🟠 Riesgo detectado — 45% a 64.9%</option>
+              <option value="high">🔴 Alto riesgo — 65% o más</option>
             </select>
+            <small class="field-hint">¿Categoría de alto riesgo? se calcula automáticamente</small>
           </div>
+
         </fieldset>
 
         <!-- Columna 4: Geografía -->
         <fieldset class="fieldset">
           <legend>Geografía</legend>
-
           <div class="field">
-            <label for="same_state">¿Mismo estado cliente-vendedor?</label>
+            <label for="same_state">¿Mismo departamento cliente-vendedor?</label>
             <select id="same_state" name="same_state">
               <option value="1">Sí</option>
               <option value="0">No</option>
             </select>
           </div>
           <div class="field">
-            <label for="customer_is_sp">¿Cliente es de São Paulo?</label>
+            <label for="customer_is_sp">¿Cliente es de Ibagué / Tolima?</label>
             <select id="customer_is_sp" name="customer_is_sp">
               <option value="0">No</option>
               <option value="1">Sí</option>
@@ -162,7 +174,6 @@
 
       </div><!-- /.form-grid -->
 
-      <!-- Botones de acceso rápido -->
       <div class="quick-btns">
         <span class="quick-label">Carga rápida:</span>
         <button type="button" class="btn-quick btn-high" onclick="loadPreset('high')">🔴 Alto riesgo</button>
@@ -178,21 +189,16 @@
 
   <!-- Panel de resultado -->
   <section class="result-panel" id="resultPanel">
-
     <div class="result-placeholder" id="resultPlaceholder">
       <div class="placeholder-icon">📊</div>
       <p>Completa el formulario y haz clic en <strong>Predecir Riesgo</strong></p>
     </div>
-
     <div class="result-content" id="resultContent" style="display:none">
-
       <div class="verdict-card" id="verdictCard">
         <div class="verdict-icon" id="verdictIcon"></div>
         <div class="verdict-text" id="verdictText"></div>
         <div class="verdict-prob" id="verdictProb"></div>
       </div>
-
-      <!-- Barra de probabilidad -->
       <div class="prob-bar-wrap">
         <div class="prob-bar-bg">
           <div class="prob-bar-fill" id="probBarFill"></div>
@@ -204,27 +210,19 @@
           <span>100%</span>
         </div>
       </div>
-
-      <!-- Top features -->
       <div class="features-section">
         <h3>🎯 Factores más influyentes</h3>
         <div id="featuresList" class="features-list"></div>
       </div>
-
       <div class="meta-info" id="metaInfo"></div>
     </div>
-
-    <!-- Loading -->
     <div class="loading" id="loadingOverlay" style="display:none">
       <div class="spinner"></div>
       <p>Analizando riesgo…</p>
     </div>
-
-    <!-- Error -->
     <div class="error-box" id="errorBox" style="display:none">
       <span>⚠️</span> <span id="errorMsg"></span>
     </div>
-
   </section>
 
 </main>

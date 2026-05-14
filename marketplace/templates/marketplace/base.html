@@ -20,10 +20,9 @@
 </head>
 <body>
 <div class="d-flex">
-  <!-- Sidebar -->
   <nav class="sidebar p-3 d-flex flex-column" style="width:230px; min-width:230px;">
     <a href="{% url 'marketplace:dashboard' %}" class="brand mb-4 text-decoration-none">
-      <i class="bi bi-shop me-2"></i>Olist Risk
+      <i class="bi bi-shop me-2"></i> Olist Risk
     </a>
     <ul class="nav flex-column flex-grow-1">
       <li class="nav-item">
@@ -79,7 +78,6 @@
     </div>
   </nav>
 
-  <!-- Main content -->
   <main class="flex-grow-1 p-4">
     {% if messages %}
       {% for msg in messages %}

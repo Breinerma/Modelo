@@ -1,12 +1,39 @@
-/* ── Presets ─────────────────────────────────────────────────────────────── */
+/* ─────────────────────────────────────────────────────────────────────────
+   Mapeo de niveles de riesgo de categoría → valores numéricos para el modelo
+   ───────────────────────────────────────────────────────────────────────── */
+const CATEGORY_RISK_MAP = {
+  low:       { rate: 0.15,  is_high: 0 },  // < 30 %
+  moderate:  { rate: 0.37,  is_high: 0 },  // 30 % – 44.9 %
+  detected:  { rate: 0.55,  is_high: 1 },  // 45 % – 64.9 %
+  high:      { rate: 0.75,  is_high: 1 },  // ≥ 65 %
+};
+
+/* Actualiza los hidden inputs cuando el usuario cambia el selector de categoría */
+function syncCategoryRisk() {
+  const level  = document.getElementById('category_risk_display').value;
+  const mapped = CATEGORY_RISK_MAP[level];
+  document.getElementById('category_risk_rate').value      = mapped.rate;
+  document.getElementById('is_high_risk_category').value   = mapped.is_high;
+}
+
+/* Inicializar listeners al cargar la página */
+document.getElementById('category_risk_display').addEventListener('change', syncCategoryRisk);
+
+/* Sync inicial para que los hidden inputs tengan valores correctos desde el arranque */
+syncCategoryRisk();
+
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Presets — usan los selects visibles, los hidden se sincronizan solos
+   ───────────────────────────────────────────────────────────────────────── */
 const PRESETS = {
   high: {
     total_items: 8, total_price: 420, total_freight: 65,
     unique_sellers: 3, payment_installments: 12,
     approval_delay_hours: 72, estimated_delivery_days: 45,
     purchase_month: 11, purchase_weekday: 4,
-    seller_historic_risk_rate: 0.38, seller_historic_order_count: 8,
-    category_risk_rate: 0.28, is_high_risk_category: 1,
+    seller_historic_order_count: 8,
+    category_risk_display: 'detected', // Riesgo detectado
     same_state: 0, customer_is_sp: 0,
   },
   low: {
@@ -14,8 +41,8 @@ const PRESETS = {
     unique_sellers: 1, payment_installments: 1,
     approval_delay_hours: 0.5, estimated_delivery_days: 7,
     purchase_month: 4, purchase_weekday: 1,
-    seller_historic_risk_rate: 0.05, seller_historic_order_count: 120,
-    category_risk_rate: 0.07, is_high_risk_category: 0,
+    seller_historic_order_count: 80,
+    category_risk_display: 'low', // Bajo riesgo
     same_state: 1, customer_is_sp: 1,
   },
 };
@@ -26,23 +53,31 @@ function loadPreset(type) {
     const el = document.getElementById(k);
     if (el) el.value = v;
   });
+  // Re-sincronizar hidden inputs tras cargar preset
+  syncCategoryRisk();
+  syncSellerRisk();
 }
 
 function resetForm() {
   document.getElementById('predictForm').reset();
+  document.getElementById('category_risk_display').value = 'moderate';
+  syncCategoryRisk();
   hideResult();
 }
 
-/* ── Helpers ─────────────────────────────────────────────────────────────── */
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Helpers
+   ───────────────────────────────────────────────────────────────────────── */
 function getCookie(name) {
   const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
   return v ? v.pop() : '';
 }
 
 function hideResult() {
-  document.getElementById('resultContent').style.display = 'none';
+  document.getElementById('resultContent').style.display  = 'none';
   document.getElementById('resultPlaceholder').style.display = 'flex';
-  document.getElementById('errorBox').style.display = 'none';
+  document.getElementById('errorBox').style.display       = 'none';
 }
 
 function showLoading(on) {
@@ -50,9 +85,17 @@ function showLoading(on) {
   document.getElementById('submitBtn').disabled = on;
 }
 
-/* ── Form submit ─────────────────────────────────────────────────────────── */
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Form submit
+   ───────────────────────────────────────────────────────────────────────── */
 document.getElementById('predictForm').addEventListener('submit', async (e) => {
   e.preventDefault();
+
+  // Asegurar sync antes de enviar (por si acaso)
+  syncCategoryRisk();
+  syncSellerRisk();
+
   showLoading(true);
   document.getElementById('errorBox').style.display = 'none';
 
@@ -89,37 +132,34 @@ document.getElementById('predictForm').addEventListener('submit', async (e) => {
   }
 });
 
-/* ── Render result ───────────────────────────────────────────────────────── */
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Render result
+   ───────────────────────────────────────────────────────────────────────── */
 function renderResult(data) {
   document.getElementById('resultPlaceholder').style.display = 'none';
-  document.getElementById('resultContent').style.display = 'block';
+  document.getElementById('resultContent').style.display     = 'block';
 
   const isHigh = data.risk_label === 1;
   const prob   = data.risk_probability;
   const thresh = data.threshold;
 
-  // Verdict card
   const card = document.getElementById('verdictCard');
   card.className = 'verdict-card ' + (isHigh ? 'high' : 'low');
-  document.getElementById('verdictIcon').textContent = isHigh ? '🔴' : '🟢';
-  document.getElementById('verdictText').textContent = data.risk_label_text;
-  document.getElementById('verdictText').style.color = isHigh ? 'var(--red)' : 'var(--green)';
-  document.getElementById('verdictProb').textContent = (prob * 100).toFixed(1) + '%';
-  document.getElementById('verdictProb').style.color = isHigh ? 'var(--red)' : 'var(--green)';
+  document.getElementById('verdictIcon').textContent  = isHigh ? '🔴' : '🟢';
+  document.getElementById('verdictText').textContent  = data.risk_label_text;
+  document.getElementById('verdictText').style.color  = isHigh ? 'var(--red)' : 'var(--green)';
+  document.getElementById('verdictProb').textContent  = (prob * 100).toFixed(1) + '%';
+  document.getElementById('verdictProb').style.color  = isHigh ? 'var(--red)' : 'var(--green)';
 
-  // Probability bar
   const fill = document.getElementById('probBarFill');
-  fill.style.width    = (prob * 100).toFixed(1) + '%';
+  fill.style.width      = (prob * 100).toFixed(1) + '%';
   fill.style.background = isHigh ? 'var(--red)' : 'var(--green)';
 
-  const thLine = document.getElementById('probBarThreshold');
-  thLine.style.left = (thresh * 100).toFixed(1) + '%';
+  document.getElementById('probBarThreshold').style.left = (thresh * 100).toFixed(1) + '%';
+  document.getElementById('thresholdLabel').textContent  = 'Umbral ' + (thresh * 100).toFixed(0) + '%';
 
-  document.getElementById('thresholdLabel').textContent =
-    'Umbral ' + (thresh * 100).toFixed(0) + '%';
-
-  // Top features
-  const feats = data.top_features || {};
+  const feats  = data.top_features || {};
   const maxImp = Math.max(...Object.values(feats), 0.0001);
   const list   = document.getElementById('featuresList');
   list.innerHTML = '';
@@ -127,8 +167,8 @@ function renderResult(data) {
   Object.entries(feats)
     .sort((a, b) => b[1] - a[1])
     .forEach(([name, imp]) => {
-      const pct  = ((imp / maxImp) * 100).toFixed(0);
-      const row  = document.createElement('div');
+      const pct = ((imp / maxImp) * 100).toFixed(0);
+      const row = document.createElement('div');
       row.className = 'feature-row';
       row.innerHTML = `
         <span class="feature-name" title="${name}">${name}</span>
@@ -140,7 +180,6 @@ function renderResult(data) {
       list.appendChild(row);
     });
 
-  // Meta
   document.getElementById('metaInfo').textContent =
     `Modelo v${data.model_version} · Umbral ${thresh}`;
 }
